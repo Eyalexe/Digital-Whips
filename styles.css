@@ -1,0 +1,60 @@
+/* styles.css — Digital Whips */
+
+#__digital_whips_canvas__ {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none; /* deja pasar los clics hacia la página */
+  z-index: 2147483647; /* por encima de todo */
+}
+
+/* Oculta el cursor del sistema mientras el látigo está activo, para que
+   el látigo dibujado en el canvas "sea" el cursor. */
+html.__digital_whips_active__,
+html.__digital_whips_active__ * {
+  cursor: none !important;
+}
+
+/* Sacudida de pantalla completa — solo se activa cuando el usuario
+   habilita "Shake Screen Effect" en la configuración. */
+@keyframes __digital_whips_shake_kf__ {
+  0% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-10px, -6px);
+  }
+  20% {
+    transform: translate(9px, 5px);
+  }
+  30% {
+    transform: translate(-8px, 6px);
+  }
+  40% {
+    transform: translate(7px, -5px);
+  }
+  50% {
+    transform: translate(-6px, 4px);
+  }
+  60% {
+    transform: translate(5px, -4px);
+  }
+  70% {
+    transform: translate(-4px, 3px);
+  }
+  80% {
+    transform: translate(3px, -2px);
+  }
+  90% {
+    transform: translate(-2px, 1px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+html.__digital_whips_shake__ {
+  animation: __digital_whips_shake_kf__ 420ms ease-in-out;
+}

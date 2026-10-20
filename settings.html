@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Whips — Settings</title>
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <header class="panel-header">
+        <img src="icons/icon48.png" alt="" class="logo" />
+        <div>
+          <h1>Digital Whips</h1>
+          <p class="subtitle">Settings</p>
+        </div>
+      </header>
+
+      <section class="setting-row">
+        <div class="setting-text">
+          <span class="setting-label">Shake Screen Effect</span>
+          <span class="setting-description"
+            >Adds a heavier crack animation and shakes the whole screen when
+            you whip.</span
+          >
+          <span class="setting-warning"
+            >WARNING: THIS IS A NEW FEATURE, IT MAY HAVE BUGS</span
+          >
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="shake-toggle" />
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section class="setting-row">
+        <div class="setting-text">
+          <span class="setting-label">Messages</span>
+          <span class="setting-description"
+            >Show extra text after "Whips" (e.g. "FASTER!"). When off, only
+            "Whips" is sent.</span
+          >
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="messages-toggle" />
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section class="setting-row">
+        <div class="setting-text">
+          <span class="setting-label">*Whips you*</span>
+          <span class="setting-description"
+            >Writes "*Whips you*" to the AI, followed by the phrase (for
+            example: "*Whips you* DO IT BETTER!"). When off, only the phrase
+            is sent (for example: "DO IT BETTER!").</span
+          >
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="whips-you-toggle" />
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <section class="setting-row">
+        <div class="setting-text">
+          <span class="setting-label">Special Word</span>
+          <span class="setting-description"
+            >Replaces the phrase "FASTER!" with "FASTER CLANKER!" and "Speed it up!"
+            with "Speed it up CLANKER!". All other phrases stay the
+            same.</span
+          >
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="special-word-toggle" />
+          <span class="slider"></span>
+        </label>
+      </section>
+
+      <footer class="panel-footer">
+        <span id="status-text" class="status-text"></span>
+      </footer>
+    </main>
+
+    <script src="settings.js"></script>
+  </body>
+</html>

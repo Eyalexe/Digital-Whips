@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Digital Whips",
+  "version": "1.1.0",
+  "description": "Agrega un látigo interactivo con físicas sobre la interfaz de varias IAs de chat. Clic en el ícono para activar/desactivar.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Digital Whips — Activar/Desactivar el látigo"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://gemini.google.com/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://grok.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://www.dola.com/*",
+    "https://dola.com/*",
+    "https://ecogpt.com/*",
+    "https://character.ai/*",
+    "https://www.character.ai/*",
+    "https://ia601409.us.archive.org/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gemini.google.com/*",
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://grok.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://www.dola.com/*",
+        "https://dola.com/*",
+        "https://ecogpt.com/*",
+        "https://character.ai/*",
+        "https://www.character.ai/*"
+      ],
+      "js": ["physics.js", "content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
