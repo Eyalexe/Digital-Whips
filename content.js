@@ -22,6 +22,9 @@
   const INTENSE_IMPACT_DURATION_MS = 480; // impacto más largo/grande con Shake Screen Effect
   const STOP_TO_SEND_DELAY_MS = 300; // espera tras cancelar antes de escribir/enviar
   const SHAKE_DURATION_MS = 420;
+  const STOP_WAIT_TIMEOUT_MS = 1000; // máx. espera a que la IA termine de cancelar
+  const SEND_RETRY_INTERVAL_MS = 120; // cada cuánto se reintenta enviar
+  const SEND_RETRY_TIMEOUT_MS = 4000; // máx. tiempo reintentando el envío
 
   // Efecto de sonido del latigazo (precargado como blob para esquivar el
   // CSP de la página; requiere el host_permission correspondiente en el
@@ -307,7 +310,12 @@
       // después se escribe y envía el mensaje del latigazo.
       stopBtn.click();
       const message = buildWhipMessage("generating");
-      setTimeout(() => sendWhipMessage(message), STOP_TO_SEND_DELAY_MS);
+      // Gemini/ChatGPT tardan en volver al estado "inactivo" tras cancelar y,
+      // mientras tanto, ignoran el envío. Se espera a que el botón de detener
+      // desaparezca antes de escribir y enviar.
+      waitFor(() => !getStopButton(), STOP_WAIT_TIMEOUT_MS).then(() =>
+        setTimeout(() => sendWhipMessage(message), STOP_TO_SEND_DELAY_MS)
+      );
     } else {
       sendWhipMessage(buildWhipMessage("idle"));
     }
@@ -509,28 +517,82 @@
     editor.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
-  function submitEditor(editor) {
-    const enterDown = new KeyboardEvent("keydown", {
+  // Espera hasta que cond() sea verdadera (o venza el tiempo) y resuelve.
+  function waitFor(cond, timeoutMs) {
+    return new Promise((resolve) => {
+      const start = performance.now();
+      (function check() {
+        let ok = false;
+        try {
+          ok = cond();
+        } catch (e) {}
+        if (ok || performance.now() - start >= timeoutMs) resolve(ok);
+        else setTimeout(check, 80);
+      })();
+    });
+  }
+
+  function editorHasText(editor) {
+    return editor.tagName === "TEXTAREA"
+      ? editor.value.trim().length > 0
+      : editor.textContent.trim().length > 0;
+  }
+
+  function pressEnter(editor) {
+    const opts = {
       key: "Enter",
       code: "Enter",
       keyCode: 13,
       which: 13,
       bubbles: true,
       cancelable: true,
-    });
-    editor.dispatchEvent(enterDown);
+    };
+    editor.dispatchEvent(new KeyboardEvent("keydown", opts));
+    editor.dispatchEvent(new KeyboardEvent("keypress", opts));
+    editor.dispatchEvent(new KeyboardEvent("keyup", opts));
+  }
 
-    // Respaldo: si tras el Enter el cuadro sigue con texto, clickeamos enviar.
-    setTimeout(() => {
-      const stillHasText =
-        editor.tagName === "TEXTAREA"
-          ? editor.value.trim().length > 0
-          : editor.textContent.trim().length > 0;
-      if (stillHasText) {
-        const btn = getSendButton();
-        if (btn && !btn.disabled) btn.click();
+  // Botón de enviar utilizable: existe, está visible, habilitado y NO es el
+  // botón de detener (en algunos sitios comparten aria-label).
+  function getUsableSendButton() {
+    const btn = getSendButton();
+    if (!btn) return null;
+    if (btn.disabled || btn.getAttribute("aria-disabled") === "true") return null;
+    if (btn.offsetParent === null) return null;
+    const stop = getStopButton();
+    if (stop && (stop === btn || stop.contains(btn) || btn.contains(stop))) {
+      return null;
+    }
+    return btn;
+  }
+
+  // Envía el texto que ya está en el editor. Reintenta durante unos segundos:
+  // tras cancelar, la página puede tardar en habilitar el botón de enviar, y
+  // un solo intento (como antes) dejaba el texto escrito sin enviar.
+  function submitEditor(editor) {
+    const start = performance.now();
+    let enterTried = false;
+
+    function attempt() {
+      if (!editor.isConnected) return; // la página re-renderizó el editor
+      if (!editorHasText(editor)) return; // ya se envió
+      if (performance.now() - start > SEND_RETRY_TIMEOUT_MS) return;
+
+      const btn = getUsableSendButton();
+      if (btn) {
+        btn.click();
+        // Tras un clic damos más margen antes de reintentar, para no enviar
+        // dos veces si la página tarda en vaciar el editor.
+        setTimeout(attempt, 600);
+        return;
+      } else if (!enterTried && !getStopButton()) {
+        // Sin botón todavía: probamos Enter una vez (sitios donde Enter envía).
+        enterTried = true;
+        pressEnter(editor);
       }
-    }, 60);
+      setTimeout(attempt, SEND_RETRY_INTERVAL_MS);
+    }
+    attempt();
   }
 
   function sendWhipMessage(text) {
@@ -544,7 +606,7 @@
     } else {
       setContentEditableText(editor, text);
     }
-    setTimeout(() => submitEditor(editor), 30);
+    setTimeout(() => submitEditor(editor), 60);
   }
 
   // ---------------------------------------------------------------------
